@@ -1,7 +1,7 @@
 /**
  * POST /api/chat
  * Full RAG pipeline: embed query → cosine similarity → OpenAI GPT chat.
- * Data files are loaded once per process from web/data/ (bundled for Vercel).
+ * books.json + metadata.json are bundled; embeddings.json is fetched from /public/data/.
  */
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
@@ -39,20 +39,28 @@ type Book = {
 
 // ---------------------------------------------------------------------------
 // Data loading (cached per process / Lambda warm start)
+// books.json + metadata.json read from filesystem (bundled by next.config.mjs)
+// embeddings.json fetched via HTTP from /public/data/ to keep bundle size small
 // ---------------------------------------------------------------------------
 let cachedBooks: Book[] | null = null;
 let cachedEmbeddings: number[][] | null = null;
 let cachedMetadata: Record<string, unknown> | null = null;
 
-function loadData() {
-  if (cachedBooks && cachedEmbeddings && cachedMetadata) {
-    return { books: cachedBooks, embeddings: cachedEmbeddings, metadata: cachedMetadata };
-  }
+function loadStaticData() {
+  if (cachedBooks && cachedMetadata) return;
   const dataDir = path.join(process.cwd(), "data");
   cachedBooks = JSON.parse(fs.readFileSync(path.join(dataDir, "books.json"), "utf-8")) as Book[];
-  cachedEmbeddings = JSON.parse(fs.readFileSync(path.join(dataDir, "embeddings.json"), "utf-8")) as number[][];
   cachedMetadata = JSON.parse(fs.readFileSync(path.join(dataDir, "metadata.json"), "utf-8")) as Record<string, unknown>;
-  return { books: cachedBooks, embeddings: cachedEmbeddings, metadata: cachedMetadata };
+}
+
+async function loadEmbeddings(req: NextRequest): Promise<number[][]> {
+  if (cachedEmbeddings) return cachedEmbeddings;
+  // Build absolute URL from the incoming request origin
+  const origin = req.nextUrl.origin;
+  const res = await fetch(`${origin}/data/embeddings.json`, { cache: "force-cache" });
+  if (!res.ok) throw new Error(`Failed to fetch embeddings: ${res.status}`);
+  cachedEmbeddings = (await res.json()) as number[][];
+  return cachedEmbeddings;
 }
 
 // ---------------------------------------------------------------------------
@@ -177,7 +185,9 @@ export async function POST(req: NextRequest) {
 
   let books: Book[], embeddings: number[][];
   try {
-    ({ books, embeddings } = loadData());
+    loadStaticData();
+    books = cachedBooks!;
+    embeddings = await loadEmbeddings(req);
   } catch (err) {
     return NextResponse.json({ detail: `Failed to load data: ${err}` }, { status: 500 });
   }

@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Include data files in serverless function bundles (Vercel)
+  // Bundle only books.json + metadata.json; embeddings served from /public/data/
   experimental: {
     outputFileTracingIncludes: {
-      "/api/chat": ["./data/**/*"],
+      "/api/chat": ["./data/books.json", "./data/metadata.json"],
     },
   },
 };
