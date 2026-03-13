@@ -1068,10 +1068,17 @@ h1 {
     justify-content: center;
   }
 
-  /* ---- Main: full width ---- */
+  /* ---- Main: full width, fixed height so input stays visible ---- */
+  .bookbot-root {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
   .bookbot-main {
     width: 100%;
-    min-height: 100vh;
+    height: 100dvh;
+    min-height: unset;
+    overflow: hidden;
   }
 
   /* ---- Header ---- */
