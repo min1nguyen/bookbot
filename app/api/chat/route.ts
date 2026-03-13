@@ -202,41 +202,67 @@ export async function POST(req: NextRequest) {
   }
 
   const results = retrieveBooks(queryVec, books, embeddings, 8);
+  const suggestedCards = results.slice(0, 5).map((r) => bookToCard(r.book));
+
   if (results.length === 0) {
-    return NextResponse.json({
-      reply: "No matching books found. Try a different question!",
-      session_id: sessionId,
-      books: [],
-    });
+    const enc = new TextEncoder();
+    return new Response(
+      enc.encode(
+        JSON.stringify({ type: "meta", session_id: sessionId, books: [] }) + "\n" +
+        JSON.stringify({ type: "delta", text: "No matching books found. Try a different question!" }) + "\n" +
+        JSON.stringify({ type: "done" }) + "\n"
+      ),
+      { headers: { "Content-Type": "application/x-ndjson" } }
+    );
   }
 
   const booksBlock = formatBooksForPrompt(results);
   const userContent = `Books available to recommend (use only these):\n\n${booksBlock}\n\n---\nCustomer question: ${message}\n\nReply in a few friendly sentences. Recommend at least 3 books when possible. Be persuasive and mention shop locations.`;
 
-  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+  const chatMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
     { role: "system", content: SYSTEM_PROMPT },
     ...session.history,
     { role: "user", content: userContent },
   ];
 
-  let reply: string;
+  let streamResponse: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>;
   try {
-    const res = await getOpenAI().chat.completions.create({
+    streamResponse = await getOpenAI().chat.completions.create({
       model: "gpt-4o-mini",
-      messages,
+      messages: chatMessages,
       max_tokens: 600,
+      stream: true,
     });
-    reply = res.choices[0].message.content?.trim() ?? "Sorry, I couldn't generate a response.";
   } catch (err) {
     return NextResponse.json({ detail: `LLM call failed: ${err}` }, { status: 500 });
   }
 
-  // Update history (keep last 10 turns to avoid token bloat)
-  session.history.push({ role: "user", content: userContent });
-  session.history.push({ role: "assistant", content: reply });
-  if (session.history.length > 20) session.history = session.history.slice(-20);
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    async start(controller) {
+      // Send book cards and session id immediately
+      controller.enqueue(
+        encoder.encode(JSON.stringify({ type: "meta", session_id: sessionId, books: suggestedCards }) + "\n")
+      );
 
-  const suggestedCards = results.slice(0, 5).map((r) => bookToCard(r.book));
+      let fullReply = "";
+      for await (const chunk of streamResponse) {
+        const text = chunk.choices[0]?.delta?.content ?? "";
+        if (text) {
+          fullReply += text;
+          controller.enqueue(encoder.encode(JSON.stringify({ type: "delta", text }) + "\n"));
+        }
+      }
 
-  return NextResponse.json({ reply, session_id: sessionId, books: suggestedCards });
+      // Persist to session history
+      session.history.push({ role: "user", content: userContent });
+      session.history.push({ role: "assistant", content: fullReply });
+      if (session.history.length > 20) session.history = session.history.slice(-20);
+
+      controller.enqueue(encoder.encode(JSON.stringify({ type: "done" }) + "\n"));
+      controller.close();
+    },
+  });
+
+  return new Response(readable, { headers: { "Content-Type": "application/x-ndjson" } });
 }

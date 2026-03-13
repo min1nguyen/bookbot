@@ -54,36 +54,65 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text, session_id: sessionId }),
       });
-      const textBody = await res.text();
-      let data: { reply?: string; session_id?: string; books?: unknown[]; detail?: string };
-      try {
-        data = textBody ? JSON.parse(textBody) : {};
-      } catch {
-        throw new Error(res.ok ? "Invalid response" : `API error ${res.status}: ${textBody.slice(0, 150)}`);
+      if (!res.ok || !res.body) {
+        const t = await res.text();
+        throw new Error(`API error ${res.status}: ${t.slice(0, 150)}`);
       }
-      if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : String(data.detail || res.statusText).slice(0, 200));
-      setSessionId(data.session_id ?? null);
-      const cardBooks: BookCardProps[] = (data.books || []).map((raw: unknown) => {
-        const b = raw as Record<string, unknown>;
-        return {
-          id: b.id as string | undefined,
-          title: (b.title as string) || "Unknown",
-          author: (b.author as string) || "—",
-          genre: (b.genre as string) || "Book",
-          rating: typeof b.rating === "number" ? b.rating : parseInt(String(b.rating || 0), 10) || 0,
-          reviewCount: String(b.reviewCount ?? b.Number_of_reviews ?? "0"),
-          price: String(b.price ?? "—"),
-          coverSrc: b.coverSrc as string | undefined,
-          url: b.url as string | undefined,
-          shop: b.shop as string | undefined,
-        };
-      });
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", content: data.reply ?? "", books: cardBooks.length ? cardBooks : undefined },
-      ]);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let metaReceived = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const msg = JSON.parse(line) as { type: string; session_id?: string; books?: unknown[]; text?: string };
+
+          if (msg.type === "meta") {
+            setSessionId(msg.session_id ?? null);
+            const cardBooks: BookCardProps[] = (msg.books ?? []).map((raw: unknown) => {
+              const b = raw as Record<string, unknown>;
+              return {
+                id: b.id as string | undefined,
+                title: (b.title as string) || "Unknown",
+                author: (b.author as string) || "—",
+                genre: (b.genre as string) || "Book",
+                rating: typeof b.rating === "number" ? b.rating : parseInt(String(b.rating || 0), 10) || 0,
+                reviewCount: String(b.reviewCount ?? "0"),
+                price: String(b.price ?? "—"),
+                coverSrc: b.coverSrc as string | undefined,
+                url: b.url as string | undefined,
+                shop: b.shop as string | undefined,
+              };
+            });
+            setMessages((m) => [
+              ...m,
+              { role: "assistant", content: "", books: cardBooks.length ? cardBooks : undefined },
+            ]);
+            metaReceived = true;
+            setLoading(false);
+          } else if (msg.type === "delta" && metaReceived) {
+            setMessages((m) => {
+              const updated = [...m];
+              const last = updated[updated.length - 1];
+              if (last?.role === "assistant") {
+                updated[updated.length - 1] = { ...last, content: last.content + (msg.text ?? "") };
+              }
+              return updated;
+            });
+          }
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Request failed");
+      setLoading(false);
     } finally {
       setLoading(false);
     }
