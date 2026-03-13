@@ -1,0 +1,941 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #0f0f12;
+  color: #e4e4e7;
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.msg {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  max-width: 90%;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.msg.user {
+  align-self: flex-end;
+  background: #3b82f6;
+  color: white;
+}
+
+.msg.assistant {
+  align-self: flex-start;
+  background: #27272a;
+  border: 1px solid #3f3f46;
+}
+
+.form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.form input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #3f3f46;
+  background: #18181b;
+  color: #e4e4e7;
+  font-size: 1rem;
+}
+
+.form input::placeholder {
+  color: #71717a;
+}
+
+.form input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.form button {
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.form button:hover {
+  background: #2563eb;
+}
+
+.form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loading {
+  align-self: flex-start;
+  padding: 0.75rem 1rem;
+  color: #a1a1aa;
+  font-size: 0.875rem;
+}
+
+.error {
+  color: #f87171;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* --- BookBot layout and components --- */
+
+.bookbot-root {
+  display: flex;
+  min-height: 100vh;
+  max-width: 100vw;
+  overflow: hidden;
+}
+
+.bookbot-root .bookbot-sidebar {
+  width: 20%;
+  min-width: 260px;
+  max-width: 320px;
+  background: #4e2a0a;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0.75rem;
+}
+
+.bookbot-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.bookbot-logo {
+  width: 36px;
+  height: 36px;
+  background: #e85d04;
+  color: #fff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.bookbot-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.bookbot-tagline {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.125rem;
+}
+
+.bookbot-btn-new {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background: #e85d04;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.bookbot-btn-new:hover {
+  background: #d35400;
+}
+
+.bookbot-btn-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.bookbot-search-wrap {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.bookbot-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+}
+
+.bookbot-search {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.875rem;
+}
+
+.bookbot-search::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.bookbot-search:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.bookbot-recent {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.bookbot-recent-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.5rem;
+}
+
+.bookbot-conversation-list {
+  list-style: none;
+  overflow-y: auto;
+}
+
+.bookbot-conversation-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 0.25rem;
+}
+
+.bookbot-conversation-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bookbot-conversation-item.active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.bookbot-conv-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.bookbot-conv-icon.custom {
+  background: #e85d04;
+  color: #fff;
+  font-weight: 600;
+}
+
+.bookbot-conv-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.bookbot-conv-title {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.bookbot-conv-desc,
+.bookbot-conv-time {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.bookbot-sidebar-footer {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bookbot-reader-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0;
+  border: none;
+  background: none;
+  color: #fff;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.bookbot-reader-link:hover {
+  color: #e85d04;
+}
+
+.bookbot-reader-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e85d04;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.bookbot-arrow {
+  margin-left: auto;
+  opacity: 0.8;
+}
+
+/* Main content area */
+.bookbot-main {
+  flex: 1;
+  background: #f9f7f5;
+  color: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bookbot-main-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #b8d4e3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.bookbot-header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.bookbot-header-cart {
+  flex-shrink: 0;
+}
+
+.bookbot-cart-header-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookbot-cart-header-btn:hover {
+  background: #f5f5f5;
+  border-color: #ccc;
+}
+
+.bookbot-cart-header-icon {
+  font-size: 1.25rem;
+}
+
+.bookbot-cart-header-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #e85d04;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookbot-main-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.bookbot-main-status {
+  font-size: 0.8125rem;
+  color: #666;
+}
+
+.bookbot-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.bookbot-msg-wrap {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bookbot-msg-wrap.assistant {
+  justify-content: flex-start;
+}
+
+.bookbot-msg-bubble {
+  max-width: 75%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.bookbot-msg-bubble.user {
+  background: #e85d04;
+  color: #fff;
+}
+
+.bookbot-msg-bubble.assistant {
+  background: #fff;
+  color: #1a1a1a;
+  border: 1px solid #eee;
+}
+
+.bookbot-msg-text {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin-bottom: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bookbot-msg-bubble.assistant .bookbot-msg-text {
+  margin-bottom: 1rem;
+}
+
+.bookbot-msg-books {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.bookbot-book-card {
+  display: flex;
+  gap: 0.75rem;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  max-width: 320px;
+}
+
+.bookbot-book-cover-wrap {
+  flex-shrink: 0;
+}
+
+.bookbot-book-cover {
+  width: 72px;
+  height: 96px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.bookbot-book-cover-placeholder {
+  background: linear-gradient(135deg, #e8e4e0 0%, #d4cfc9 100%);
+}
+
+.bookbot-book-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.bookbot-book-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.bookbot-book-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.bookbot-book-title-link:hover {
+  text-decoration: underline;
+}
+
+.bookbot-book-author {
+  font-size: 0.8125rem;
+  color: #555;
+  margin: 0;
+}
+
+.bookbot-book-genre {
+  display: inline-block;
+  font-size: 0.6875rem;
+  padding: 0.2rem 0.4rem;
+  background: #f0ebe6;
+  color: #333;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.bookbot-book-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.bookbot-stars {
+  display: inline-flex;
+  gap: 0.125rem;
+}
+
+.bookbot-star {
+  color: #d4cfc9;
+}
+
+.bookbot-star.filled {
+  color: #e9b839;
+}
+
+.bookbot-book-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bookbot-book-price {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  margin-right: 0.25rem;
+}
+
+.bookbot-btn-cart {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  background: #e85d04;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.bookbot-btn-cart:hover {
+  background: #d35400;
+}
+
+.bookbot-cart-icon {
+  font-size: 0.75rem;
+}
+
+.bookbot-btn-heart {
+  padding: 0.35rem;
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.bookbot-btn-heart:hover {
+  color: #c44;
+}
+
+.bookbot-chat-input-wrap {
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid #e8e4e0;
+}
+
+.bookbot-chat-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 0.35rem 0.35rem 0.35rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.bookbot-chat-input {
+  flex: 1;
+  border: none;
+  padding: 0.5rem 0;
+  font-size: 0.9375rem;
+  background: transparent;
+  color: #1a1a1a;
+}
+
+.bookbot-chat-input::placeholder {
+  color: #999;
+}
+
+.bookbot-chat-input:focus {
+  outline: none;
+}
+
+.bookbot-chat-send {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #8b7fc7;
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.bookbot-chat-send:hover:not(:disabled) {
+  background: #7a6eb5;
+}
+
+.bookbot-chat-send:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bookbot-send-icon {
+  font-size: 0.75rem;
+  margin-left: 2px;
+}
+
+.bookbot-chat-disclaimer {
+  font-size: 0.75rem;
+  color: #999;
+  margin: 0;
+}
+
+.bookbot-loading {
+  align-self: flex-start;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.bookbot-error {
+  align-self: flex-start;
+  padding: 0.5rem 1rem;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.875rem;
+  border-radius: 8px;
+}
+
+/* Currency switcher */
+.bookbot-currency-switcher {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.bookbot-currency-btn {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  color: #555;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.bookbot-currency-btn:hover {
+  border-color: #e85d04;
+  color: #e85d04;
+}
+
+.bookbot-currency-btn.active {
+  background: #e85d04;
+  border-color: #e85d04;
+  color: #fff;
+}
+
+/* Shop badge on book card */
+.bookbot-book-shop {
+  display: inline-block;
+  font-size: 0.6875rem;
+  padding: 0.15rem 0.4rem;
+  background: #fff3ec;
+  color: #e85d04;
+  border-radius: 4px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+/* Persistent cart panel (right column) */
+.bookbot-cart-panel {
+  width: 280px;
+  min-width: 260px;
+  max-width: 300px;
+  background: #faf9f8;
+  border-left: 1px solid #e8e4e0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+}
+
+.bookbot-cart-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e8e4e0;
+  background: #fff;
+}
+
+.bookbot-cart-panel-icon {
+  font-size: 1.25rem;
+}
+
+.bookbot-cart-panel-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1a1a1a;
+  flex: 1;
+}
+
+.bookbot-cart-panel-count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #e85d04;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookbot-cart-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.bookbot-cart-panel-empty {
+  color: #888;
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.bookbot-cart-panel-hint {
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  color: #aaa;
+}
+
+.bookbot-cart-shop-group {
+  margin-bottom: 1.25rem;
+}
+
+.bookbot-cart-shop-group:last-of-type {
+  margin-bottom: 0;
+}
+
+.bookbot-cart-shop-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 0.25rem;
+}
+
+.bookbot-cart-shop-emoji {
+  font-size: 1rem;
+}
+
+.bookbot-cart-shop-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #4e2a0a;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.bookbot-cart-shop-directions {
+  font-size: 0.7rem;
+  color: #888;
+  line-height: 1.4;
+  margin: 0 0 0.5rem 0;
+  padding: 0.4rem 0.6rem;
+  background: #fff3ec;
+  border-radius: 6px;
+  border-left: 3px solid #e85d04;
+}
+
+.bookbot-cart-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bookbot-cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #f0ebe6;
+  font-size: 0.8125rem;
+}
+
+.bookbot-cart-item:last-child {
+  border-bottom: none;
+}
+
+.bookbot-cart-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.bookbot-cart-item-title {
+  color: #1a1a1a;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bookbot-cart-item-author {
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.bookbot-cart-item-right {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.bookbot-cart-item-price {
+  font-weight: 600;
+  color: #4e2a0a;
+  font-size: 0.8125rem;
+}
+
+.bookbot-cart-item-remove {
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
+  color: #bbb;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.bookbot-cart-item-remove:hover {
+  background: #f0ebe6;
+  color: #c00;
+}
+
+.bookbot-cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0 0;
+  margin-top: 0.75rem;
+  border-top: 2px solid #e8e4e0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.bookbot-cart-total-price {
+  color: #e85d04;
+  font-size: 1rem;
+}
