@@ -13,7 +13,7 @@ type SidebarProps = {
 
 export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   return (
-    <aside className={`bookbot-sidebar ${isOpen ? "mobile-open" : ""}`}>
+    <aside className={`bookbot-sidebar ${isOpen ? "open" : ""}`}>
       <div className="bookbot-sidebar-brand">
         <div className="bookbot-logo">B</div>
         <div>

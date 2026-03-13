@@ -74,7 +74,7 @@ export default function CartPanel({ items, currency, onRemove, isOpen = false, o
   }
 
   return (
-    <aside className={`bookbot-cart-panel ${isOpen ? "mobile-open" : ""}`} aria-label="Shopping cart">
+    <aside className={`bookbot-cart-panel ${isOpen ? "open" : ""}`} aria-label="Shopping cart">
       <div className="bookbot-cart-panel-header">
         <span className="bookbot-cart-panel-icon" aria-hidden>🛒</span>
         <h2 className="bookbot-cart-panel-title">Your Cart</h2>

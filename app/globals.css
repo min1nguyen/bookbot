@@ -122,14 +122,25 @@ h1 {
 }
 
 .bookbot-root .bookbot-sidebar {
-  width: 20%;
-  min-width: 260px;
-  max-width: 320px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 280px;
+  max-width: 85vw;
+  min-width: unset;
   background: #4e2a0a;
   color: #fff;
   display: flex;
   flex-direction: column;
   padding: 1rem 0.75rem;
+  z-index: 300;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+}
+
+.bookbot-root .bookbot-sidebar.open {
+  transform: translateX(0);
 }
 
 .bookbot-sidebar-brand {
@@ -339,14 +350,17 @@ h1 {
   opacity: 0.8;
 }
 
-/* Main content area */
+/* Main content area — always full width, fixed height so input stays pinned */
 .bookbot-main {
   flex: 1;
+  width: 100%;
   background: #f9f7f5;
   color: #1a1a1a;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .bookbot-main-header {
@@ -736,19 +750,26 @@ h1 {
   width: fit-content;
 }
 
-/* Persistent cart panel (right column) */
+/* Cart panel — fixed, hidden off-screen by default */
 .bookbot-cart-panel {
-  width: 280px;
-  min-width: 260px;
-  max-width: 300px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 300px;
+  max-width: 90vw;
+  min-width: unset;
   background: #faf9f8;
   border-left: 1px solid #e8e4e0;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  position: sticky;
-  top: 0;
-  overflow: hidden;
+  z-index: 300;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+
+.bookbot-cart-panel.open {
+  transform: translateX(0);
 }
 
 .bookbot-cart-panel-header {
@@ -934,9 +955,11 @@ h1 {
   color: #1a1a1a;
 }
 
-/* Cart panel close button (visible on mobile) */
+/* Cart panel close button — always visible */
 .bookbot-cart-panel-close {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 30px;
   height: 30px;
   border: none;
@@ -975,10 +998,43 @@ h1 {
 .bookbot-currency-short { display: none; }
 .bookbot-currency-full  { display: inline; }
 
-/* Mobile menu + cart buttons — hidden on desktop */
-.bookbot-mobile-menu-btn,
+/* Sidebar + cart toggle buttons — always visible */
+.bookbot-mobile-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: #1a1a1a;
+  font-size: 1.25rem;
+  cursor: pointer;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.bookbot-mobile-menu-btn:hover {
+  background: #f0ebe6;
+}
+
 .bookbot-mobile-cart-btn {
-  display: none;
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  font-size: 1.25rem;
+  cursor: pointer;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.bookbot-mobile-cart-btn:hover {
+  background: #f0ebe6;
 }
 
 /* Mobile overlay backdrop */
@@ -992,95 +1048,24 @@ h1 {
   cursor: pointer;
 }
 
-/* Sidebar close button — hidden on desktop */
+/* Sidebar close button — always visible */
 .bookbot-sidebar-close-btn {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.8);
+  font-size: 1.5rem;
+  cursor: pointer;
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-  /* Show overlay when active */
-  .bookbot-mobile-overlay {
-    display: block;
-  }
-
-  /* Root: single column */
-  .bookbot-root {
-    flex-direction: column;
-    overflow: visible;
-  }
-
-  /* ---- Left sidebar: hidden off-screen, slides in on mobile-open ---- */
-  /* Use same specificity as desktop (.bookbot-root .bookbot-sidebar) to win */
-  .bookbot-root .bookbot-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    width: 280px;
-    min-width: unset;
-    max-width: 85vw;
-    z-index: 300;
-    transform: translateX(-100%);
-    transition: transform 0.25s ease;
-  }
-
-  .bookbot-root .bookbot-sidebar.mobile-open {
-    transform: translateX(0);
-  }
-
-  .bookbot-sidebar-close-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: auto;
-    width: 30px;
-    height: 30px;
-    border: none;
-    background: transparent;
-    color: rgba(255,255,255,0.8);
-    font-size: 1.5rem;
-    cursor: pointer;
-    border-radius: 6px;
-    flex-shrink: 0;
-  }
-
-  /* ---- Cart panel: hidden off-screen, slides in on mobile-open ---- */
-  /* position:sticky on desktop becomes fixed on mobile */
-  .bookbot-cart-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    height: 100vh;
-    width: 300px;
-    max-width: 90vw;
-    z-index: 300;
-    transform: translateX(100%);
-    transition: transform 0.25s ease;
-  }
-
-  .bookbot-cart-panel.mobile-open {
-    transform: translateX(0);
-  }
-
-  .bookbot-cart-panel-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* ---- Main: full width, fixed height so input stays visible ---- */
-  .bookbot-root {
-    height: 100dvh;
-    overflow: hidden;
-  }
-
-  .bookbot-main {
-    width: 100%;
-    height: 100dvh;
-    min-height: unset;
-    overflow: hidden;
-  }
-
   /* ---- Header ---- */
   .bookbot-main-header {
     padding: 0.75rem 1rem;
@@ -1093,62 +1078,6 @@ h1 {
 
   .bookbot-main-status {
     font-size: 0.7rem;
-  }
-
-  /* Show hamburger and cart icon */
-  .bookbot-mobile-menu-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border: none;
-    background: transparent;
-    color: #1a1a1a;
-    font-size: 1.25rem;
-    cursor: pointer;
-    border-radius: 6px;
-    flex-shrink: 0;
-  }
-
-  .bookbot-mobile-menu-btn:hover {
-    background: #f0ebe6;
-  }
-
-  .bookbot-mobile-cart-btn {
-    display: flex;
-    position: relative;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border: none;
-    background: transparent;
-    font-size: 1.25rem;
-    cursor: pointer;
-    border-radius: 6px;
-    flex-shrink: 0;
-  }
-
-  .bookbot-mobile-cart-btn:hover {
-    background: #f0ebe6;
-  }
-
-  .bookbot-mobile-cart-count {
-    position: absolute;
-    top: -3px;
-    right: -3px;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 3px;
-    border-radius: 8px;
-    background: #e85d04;
-    color: #fff;
-    font-size: 0.65rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   /* Compact currency: show symbol only */
