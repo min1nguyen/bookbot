@@ -53,11 +53,11 @@ function loadStaticData() {
   cachedMetadata = JSON.parse(fs.readFileSync(path.join(dataDir, "metadata.json"), "utf-8")) as Record<string, unknown>;
 }
 
-async function loadEmbeddings(req: NextRequest): Promise<number[][]> {
+const EMBEDDINGS_URL = "https://5lbjkbdcyy0u1hbd.public.blob.vercel-storage.com/embeddings.json";
+
+async function loadEmbeddings(): Promise<number[][]> {
   if (cachedEmbeddings) return cachedEmbeddings;
-  // Build absolute URL from the incoming request origin
-  const origin = req.nextUrl.origin;
-  const res = await fetch(`${origin}/data/embeddings.json`, { cache: "force-cache" });
+  const res = await fetch(EMBEDDINGS_URL, { cache: "force-cache" });
   if (!res.ok) throw new Error(`Failed to fetch embeddings: ${res.status}`);
   cachedEmbeddings = (await res.json()) as number[][];
   return cachedEmbeddings;
@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
   try {
     loadStaticData();
     books = cachedBooks!;
-    embeddings = await loadEmbeddings(req);
+    embeddings = await loadEmbeddings();
   } catch (err) {
     return NextResponse.json({ detail: `Failed to load data: ${err}` }, { status: 500 });
   }

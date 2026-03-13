@@ -17,6 +17,9 @@ Thumbs.db
 # TypeScript build cache
 tsconfig.tsbuildinfo
 
+# Large data files (hosted on Vercel Blob)
+public/data/embeddings.json
+
 # Logs
 *.log
 npm-debug.log*
