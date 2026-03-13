@@ -32,6 +32,8 @@ export default function Home() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [currency, setCurrency] = useState<Currency>("GBP");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -100,27 +102,62 @@ export default function Home() {
 
   return (
     <div className="bookbot-root">
-      <Sidebar />
+      {/* Mobile overlays */}
+      {sidebarOpen && (
+        <button type="button" className="bookbot-mobile-overlay" onClick={() => setSidebarOpen(false)} aria-label="Close menu" />
+      )}
+      {cartOpen && (
+        <button type="button" className="bookbot-mobile-overlay" onClick={() => setCartOpen(false)} aria-label="Close cart" />
+      )}
+
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
       <div className="bookbot-main">
         <header className="bookbot-main-header">
+          {/* Hamburger — mobile only */}
+          <button
+            type="button"
+            className="bookbot-mobile-menu-btn"
+            aria-label="Open menu"
+            onClick={() => setSidebarOpen(true)}
+          >
+            ☰
+          </button>
+
           <div className="bookbot-header-left">
             <h1 className="bookbot-main-title">Book Recommendations</h1>
             <p className="bookbot-main-status">BookBot is online</p>
           </div>
-          <div className="bookbot-currency-switcher" aria-label="Currency selector">
-            {(["GBP", "EUR", "USD"] as Currency[]).map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`bookbot-currency-btn ${currency === c ? "active" : ""}`}
-                onClick={() => setCurrency(c)}
-                aria-pressed={currency === c}
-              >
-                {c === "GBP" ? "£ GBP" : c === "EUR" ? "€ EUR" : "$ USD"}
-              </button>
-            ))}
+
+          <div className="bookbot-header-right">
+            <div className="bookbot-currency-switcher" aria-label="Currency selector">
+              {(["GBP", "EUR", "USD"] as Currency[]).map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={`bookbot-currency-btn ${currency === c ? "active" : ""}`}
+                  onClick={() => setCurrency(c)}
+                  aria-pressed={currency === c}
+                >
+                  <span className="bookbot-currency-full">{c === "GBP" ? "£ GBP" : c === "EUR" ? "€ EUR" : "$ USD"}</span>
+                  <span className="bookbot-currency-short">{c === "GBP" ? "£" : c === "EUR" ? "€" : "$"}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Cart toggle — mobile only */}
+            <button
+              type="button"
+              className="bookbot-mobile-cart-btn"
+              aria-label={`Cart: ${cart.length} items`}
+              onClick={() => setCartOpen(true)}
+            >
+              🛒
+              {cart.length > 0 && <span className="bookbot-mobile-cart-count">{cart.length}</span>}
+            </button>
           </div>
         </header>
+
         <div className="bookbot-messages">
           {messages.map((msg, i) => (
             <ChatMessage
@@ -136,9 +173,17 @@ export default function Home() {
           {error && <div className="bookbot-error">{error}</div>}
           <div ref={bottomRef} />
         </div>
+
         <ChatInput value={input} onChange={setInput} onSubmit={handleSubmit} disabled={loading} />
       </div>
-      <CartPanel items={cart} currency={currency} onRemove={handleRemoveFromCart} />
+
+      <CartPanel
+        items={cart}
+        currency={currency}
+        onRemove={handleRemoveFromCart}
+        isOpen={cartOpen}
+        onClose={() => setCartOpen(false)}
+      />
     </div>
   );
 }

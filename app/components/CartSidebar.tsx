@@ -52,9 +52,11 @@ type CartPanelProps = {
   items: CartItem[];
   currency: Currency;
   onRemove: (index: number) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 };
 
-export default function CartPanel({ items, currency, onRemove }: CartPanelProps) {
+export default function CartPanel({ items, currency, onRemove, isOpen = false, onClose }: CartPanelProps) {
   const groups = groupByShop(items);
   const total = items.reduce((sum, item) => {
     const num = parseFloat(item.price.replace(/[^0-9.]/g, ""));
@@ -72,13 +74,14 @@ export default function CartPanel({ items, currency, onRemove }: CartPanelProps)
   }
 
   return (
-    <aside className="bookbot-cart-panel" aria-label="Shopping cart">
+    <aside className={`bookbot-cart-panel ${isOpen ? "mobile-open" : ""}`} aria-label="Shopping cart">
       <div className="bookbot-cart-panel-header">
         <span className="bookbot-cart-panel-icon" aria-hidden>🛒</span>
         <h2 className="bookbot-cart-panel-title">Your Cart</h2>
         {items.length > 0 && (
           <span className="bookbot-cart-panel-count">{items.length}</span>
         )}
+        <button type="button" className="bookbot-cart-panel-close" onClick={onClose} aria-label="Close cart">×</button>
       </div>
 
       <div className="bookbot-cart-panel-body">

@@ -935,7 +935,255 @@ h1 {
   color: #1a1a1a;
 }
 
+/* Cart panel close button (visible on mobile) */
+.bookbot-cart-panel-close {
+  display: none;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #666;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-left: auto;
+}
+
+.bookbot-cart-panel-close:hover {
+  background: #f0ebe6;
+  color: #1a1a1a;
+}
+
 .bookbot-cart-total-price {
   color: #e85d04;
   font-size: 1rem;
+}
+
+/* ============================================================
+   MOBILE RESPONSIVE (≤ 768px)
+   ============================================================ */
+
+/* Header right group */
+.bookbot-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Hide short currency label by default (show on mobile) */
+.bookbot-currency-short { display: none; }
+.bookbot-currency-full  { display: inline; }
+
+/* Mobile menu + cart buttons — hidden on desktop */
+.bookbot-mobile-menu-btn,
+.bookbot-mobile-cart-btn {
+  display: none;
+}
+
+/* Mobile overlay backdrop */
+.bookbot-mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
+  border: none;
+  cursor: pointer;
+}
+
+/* Sidebar close button — hidden on desktop */
+.bookbot-sidebar-close-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Show overlay when active */
+  .bookbot-mobile-overlay {
+    display: block;
+  }
+
+  /* Root: single column */
+  .bookbot-root {
+    flex-direction: column;
+  }
+
+  /* ---- Left sidebar: hidden off-screen, slides in on mobile-open ---- */
+  .bookbot-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    max-width: 85vw;
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    min-width: unset;
+    max-width: 85vw;
+  }
+
+  .bookbot-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .bookbot-sidebar-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.8);
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  /* ---- Cart panel: hidden off-screen, slides in on mobile-open ---- */
+  .bookbot-cart-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 300px;
+    max-width: 90vw;
+    z-index: 300;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+  }
+
+  .bookbot-cart-panel.mobile-open {
+    transform: translateX(0);
+  }
+
+  .bookbot-cart-panel-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---- Main: full width ---- */
+  .bookbot-main {
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  /* ---- Header ---- */
+  .bookbot-main-header {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .bookbot-main-title {
+    font-size: 1rem;
+  }
+
+  .bookbot-main-status {
+    font-size: 0.7rem;
+  }
+
+  /* Show hamburger and cart icon */
+  .bookbot-mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: #1a1a1a;
+    font-size: 1.25rem;
+    cursor: pointer;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .bookbot-mobile-menu-btn:hover {
+    background: #f0ebe6;
+  }
+
+  .bookbot-mobile-cart-btn {
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    font-size: 1.25rem;
+    cursor: pointer;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .bookbot-mobile-cart-btn:hover {
+    background: #f0ebe6;
+  }
+
+  .bookbot-mobile-cart-count {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border-radius: 8px;
+    background: #e85d04;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Compact currency: show symbol only */
+  .bookbot-currency-full  { display: none; }
+  .bookbot-currency-short { display: inline; }
+
+  .bookbot-currency-btn {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  /* ---- Messages ---- */
+  .bookbot-messages {
+    padding: 0.75rem 0.75rem;
+  }
+
+  .bookbot-msg-bubble {
+    max-width: 90%;
+  }
+
+  /* ---- Book cards: full width, stack vertically ---- */
+  .bookbot-msg-books {
+    flex-direction: column;
+  }
+
+  .bookbot-book-card {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* ---- Chat input ---- */
+  .bookbot-chat-input-wrap {
+    padding: 0.75rem 0.75rem 1rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .bookbot-book-cover {
+    width: 56px;
+    height: 76px;
+  }
+
+  .bookbot-book-title {
+    font-size: 0.875rem;
+  }
 }
